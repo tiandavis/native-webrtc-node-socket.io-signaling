@@ -34,8 +34,8 @@ app.use(express.static(__dirname + '/app'));
 app.use('/bower_components',  express.static(__dirname + '/bower_components'));
 
 // Start the server
-var s = http.createServer(app).listen(8080);
-var server = https.createServer(options, app).listen(443);
+var server = http.createServer(app).listen(8080);
+//var server = https.createServer(options, app).listen(443);
 
 /*app.listen(port, function(err){
 	if (err) {
@@ -59,8 +59,12 @@ io.on('connection', function(socket){
 	  //console.log("join: ", event);
 
 	  //Add member to the group
-
-	  group.push(event.member);
+	  var index = _.indexOf(_.pluck(group, 'socketId'), socket.id);
+	  
+	  if(index === -1) {
+		  console.log("join member does not exist");
+		  group.push(event.member);
+	  }
 
 	  var room = event.room;
 
@@ -116,5 +120,10 @@ io.on('connection', function(socket){
   // Relay answers
   socket.on('answer', function(answer){
     socket.broadcast.emit('answer', answer);
+  });
+  
+  // Relay answers
+  socket.on('gotUserMedia', function(){
+    socket.broadcast.emit('gotUserMedia');
   });
 });

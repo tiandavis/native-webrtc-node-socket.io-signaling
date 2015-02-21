@@ -14,7 +14,10 @@ var AppView = Backbone.View.extend({
 		this.room = "the-interview";
 		this.isInitiator = false;
 		
-		this.pcConfig = {'iceServers':[{'url':'stun:23.21.150.121'}]};
+		this.pcConfig = {'iceServers':[
+			{'url':'stun:23.21.150.121'}, 
+			{url: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com'}
+		]};
 		
 		this.pcContraints = {
 			optional : [
@@ -24,16 +27,14 @@ var AppView = Backbone.View.extend({
 		};
 		
 		//Create an RTC object
-        this.peerConnection = new RTCPeerConnection(this.pcConfig, this.pcConstraints);
-        this.peerConnection.onicecandidate = this.onIceCandidate;
-        this.peerConnection.onaddstream = this.onAddStream;
-		
+        this.createPeerConnection();
 		this.socket.on('initiator', this.onInitiator);
 		this.socket.on('ready', this.onReady);
 		this.socket.on('offer', this.onOffer);
         this.socket.on('candidate', this.onCandidate);
         this.socket.on('answer', this.onAnswer);
 		this.socket.on('group', this.onGroupJoin);
+		this.socket.on('gotUserMedia', this.onGotUserMedia);
 		
 		
 		window.sketchpad = Raphael.sketchpad("whiteboard-canvas", {
@@ -42,7 +43,6 @@ var AppView = Backbone.View.extend({
 			editing: true
 		});
 		
-		//console.log("initialize", this);
 		
 		this.members = new Members();
 		
@@ -55,8 +55,6 @@ var AppView = Backbone.View.extend({
 		}
 		
 		// Event Listeners
-		//this.listenTo(this.member, "sync", this.connect);
-		
 		window.sketchpad.change(function() {
 			console.log("window.sketchpad.change");
 			
@@ -90,6 +88,23 @@ var AppView = Backbone.View.extend({
 		"click .profile-image img"		: "togglePresence"
     },
 	
+	createPeerConnection: function() {
+        this.peerConnection = new RTCPeerConnection(this.pcConfig, this.pcConstraints);
+       
+        // Add the local video stream to the peerConnection.
+		if(this.localStream) {
+			console.log("createPeerConnection localStream: ", this.localStream);
+			this.peerConnection.addStream(this.localStream);
+		}
+        
+      	// Set up callbacks for the connection generating iceCandidates or
+      	// receiving the remote media stream.
+        this.peerConnection.onaddstream = this.onAddStream;
+		this.peerConnection.onicecandidate = this.onIceCandidate;
+		
+		
+	},
+	
 	signin: function(e) {
 		e.preventDefault();
 		
@@ -113,11 +128,7 @@ var AppView = Backbone.View.extend({
 		
 		//$(".user-profiles").append(_.template($("#ProfileTmpl").html())(this.member.toJSON())); //Add the Profile to the View
 		
-		//this.member.save();
-		//this.createConnection();
 
-		//console.log("create or join");
-		//this.socket.emit("create or join", this.room);
 		
 	    // Now we're ready to join the chat room.
 	    this.socket.emit('join', {
@@ -178,15 +189,6 @@ var AppView = Backbone.View.extend({
 		}
     },
 	
-    // When the peerConnection receives the actual media stream from the other
-    // browser, add it to the other video element on the page.
-    onAddStream: function(event){
-		console.log("onAddStream", this);
-		var _this = window.appView;
-		
-		_this.remoteVideo = document.getElementById('remoteVideo');
-		_this.remoteVideo.src = window.URL.createObjectURL(event.stream);
-    },
 	
     // When receiving a candidate over the socket, turn it back into a real
     // RTCIceCandidate and add it to the peerConnection.
@@ -253,6 +255,7 @@ var AppView = Backbone.View.extend({
 		
         this.peerConnection.createAnswer(
           function(answer){
+			  console.log("createAnswer (inside): ", answer)
             _this.peerConnection.setLocalDescription(answer);
             _this.socket.emit('answer', JSON.stringify(answer));
           },
@@ -293,7 +296,6 @@ var AppView = Backbone.View.extend({
 		$(".messages").append(_.template($("#MessageTmpl").html())(message.toJSON())); //Add the Message to the View
 		
 		//Send the message to the group
-		//this.group.sendMessage({message: message.toJSON()});
 		this.sendChannel.send(wire);
 	},
 	
@@ -302,9 +304,6 @@ var AppView = Backbone.View.extend({
 		var _this = window.appView;
 		
 		var message = JSON.parse(event.data);
-		
-		//$(".messages").append(_.template($("#MessageTmpl").html())(message)); //Add the Message to the View
-		
 		
 		var messageTypes = {
 			"message": function(message) {
@@ -386,6 +385,8 @@ var AppView = Backbone.View.extend({
 	videoCall: function(e) {
 		console.log("videoCall");
 		
+		var _this = this;
+		
 		$(".fa-toggle-off").hide();
 		$(".fa-toggle-on").show();
 		
@@ -398,62 +399,83 @@ var AppView = Backbone.View.extend({
 		
   	  	// Call to getUserMedia (provided by adapter.js for cross browser compatibility)
   	  	// asking for access to both the video and audio streams.
-	    getUserMedia(
-			{video: true, audio: true},
-	      	function(stream) {
-			    // Get the video element.
-			    this.localVideo = document.getElementById('localVideo');
-				
-			    // Turn the volume down to 0 to avoid echoes.
-			    this.localVideo.volume = 0;
-			    this.localStream = stream;
-				
-			    // Turn the media stream into a URL that can be used by the video and add it
-			    // as the video's `src`. As the video has the `autoplay` attribute it will
-			    // start to stream immediately.
-			    this.localVideo.src = window.URL.createObjectURL(stream);
-	      	},
-			function() {
-				
-			}
-	    );
+		this.requestMediaStream();
 	},
 	
     // Call to getUserMedia (provided by adapter.js for cross browser compatibility)
     // asking for access to both the video and audio streams. If the request is
     // accepted callback to the onMediaStream function, otherwise callback to the
     // noMediaStream function.
-    requestMediaStream: function(event){
-      getUserMedia(
-        {video: true, audio: true},
-        this.onMediaStream,
-        this.noMediaStream
-      );
+    requestMediaStream: function(){
+		getUserMedia(
+			{video: true, audio: true},
+			this.onMediaStream,
+			this.noMediaStream
+		);
     },
 	
     // The onMediaStream function receives the media stream as an argument.
     onMediaStream: function(stream){
 		var _this = window.appView;
-		
-      // Get the video element.
-      _this.localVideo = document.getElementById('localVideo');
-      // Turn the volume down to 0 to avoid echoes.
-      _this.localVideo.volume = 0;
-      _this.localStream = stream;
 
-	  
-      // Turn the media stream into a URL that can be used by the video and add it
-      // as the video's `src`. As the video has the `autoplay` attribute it will
-      // start to stream immediately.
-      _this.localVideo.src = window.URL.createObjectURL(stream);
-	  
+		// Get the video element.
+		_this.localVideo = document.getElementById('localVideo');
+		// Turn the volume down to 0 to avoid echoes.
+		_this.localVideo.volume = 0;
+		_this.localStream = stream;
+
+
+		// Turn the media stream into a URL that can be used by the video and add it
+		// as the video's `src`. As the video has the `autoplay` attribute it will
+		// start to stream immediately.
+		_this.localVideo.src = window.URL.createObjectURL(stream);
+		_this.localVideo.play();
+
+		// If the negotiation already happened, a new one will be needed for the remote 
+		// peer to be able to use it.
+		if(_this.isInitiator) {
+			_this.createPeerConnection();
+			_this.createOffer();
+		}
+		
+		if(!_this.isInitiator) {
+			console.log("onAddStream localStream: ", _this.localStream);
+			_this.peerConnection.addStream(_this.localStream);
+			_this.createOffer();
+		}
     },
 
     // There's not much to do in this demo if there is no media stream. So
     // let's just stop.
     noMediaStream: function(){
-      console.log("No media stream for us.");
-      // Sad trombone.
+		console.log("No media stream for us.");
+		// Sad trombone.
+    },
+	
+    // When the peerConnection receives the actual media stream from the other
+    // browser, add it to the other video element on the page.
+    onAddStream: function(event){
+		console.log("onAddStream this: ", this);
+		console.log("onAddStream event: ", event);
+		
+		$(".fa-toggle-off").hide();
+		$(".fa-toggle-on").show();
+		
+		$(".front").hide();
+		$(".back").show();
+		
+		var _this = window.appView;
+		
+		_this.remoteVideo = document.getElementById('remoteVideo');
+		_this.remoteVideo.src = window.URL.createObjectURL(event.stream);
+		_this.remoteVideo.play();
+		
+		_this.remoteStream = event.stream;
+		
+		if(!_this.isInitiator) {
+			_this.requestMediaStream();
+		}
+		
     },
 	
 	screenShare: function(e) {
