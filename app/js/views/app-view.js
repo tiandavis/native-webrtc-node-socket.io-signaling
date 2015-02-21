@@ -432,8 +432,8 @@ var AppView = Backbone.View.extend({
 		// Turn the media stream into a URL that can be used by the video and add it
 		// as the video's `src`. As the video has the `autoplay` attribute it will
 		// start to stream immediately.
-		attachMediaStream(_this.localVideo, stream);
-		//_this.localVideo.src = window.URL.createObjectURL(stream);
+		//attachMediaStream(_this.localVideo, stream);
+		_this.localVideo.src = window.URL.createObjectURL(stream);
 		_this.localVideo.play();
 
 		// If the negotiation already happened, a new one will be needed for the remote 
@@ -472,8 +472,8 @@ var AppView = Backbone.View.extend({
 		var _this = window.appView;
 		
 		_this.remoteVideo = document.getElementById('remoteVideo');
-		attachMediaStream(remoteVideo, event.stream);
-		//_this.remoteVideo.src = window.URL.createObjectURL(event.stream);
+		//attachMediaStream(remoteVideo, event.stream);
+		_this.remoteVideo.src = window.URL.createObjectURL(event.stream);
 		_this.remoteVideo.play();
 		
 		_this.remoteStream = event.stream;
