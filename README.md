@@ -7,7 +7,7 @@ bower install
 
 sudo gulp 
 
-open https://localhost/
+open http://localhost:8080/
 ```
 
 #How To Drive

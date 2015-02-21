@@ -379,7 +379,10 @@ var AppView = Backbone.View.extend({
 		
 		console.log(email);
 		
-		
+  	  	// Call to getUserMedia (provided by adapter.js for cross browser compatibility)
+  	  	// asking for access to both the video and audio streams.
+		var constraints = {video: false, audio: true};
+		this.requestMediaStream(constraints);
 	},
 	
 	videoCall: function(e) {
@@ -399,16 +402,17 @@ var AppView = Backbone.View.extend({
 		
   	  	// Call to getUserMedia (provided by adapter.js for cross browser compatibility)
   	  	// asking for access to both the video and audio streams.
-		this.requestMediaStream();
+		var constraints = {video: true, audio: true};
+		this.requestMediaStream(constraints);
 	},
 	
     // Call to getUserMedia (provided by adapter.js for cross browser compatibility)
     // asking for access to both the video and audio streams. If the request is
     // accepted callback to the onMediaStream function, otherwise callback to the
     // noMediaStream function.
-    requestMediaStream: function(){
+    requestMediaStream: function(constraints){
 		getUserMedia(
-			{video: true, audio: true},
+			constraints,
 			this.onMediaStream,
 			this.noMediaStream
 		);
@@ -439,7 +443,7 @@ var AppView = Backbone.View.extend({
 		}
 		
 		if(!_this.isInitiator) {
-			console.log("onAddStream localStream: ", _this.localStream);
+			console.log("onMediaStream localStream: ", _this.localStream);
 			_this.peerConnection.addStream(_this.localStream);
 			_this.createOffer();
 		}
@@ -473,7 +477,15 @@ var AppView = Backbone.View.extend({
 		_this.remoteStream = event.stream;
 		
 		if(!_this.isInitiator) {
-			_this.requestMediaStream();
+			var constraints = {};
+			
+			if(event.stream.getVideoTracks().length > 0) {
+				 constraints = {video: true, audio: true};
+			} else {
+				constraints = {video: false, audio: true};
+			}
+			
+			_this.requestMediaStream(constraints);
 		}
 		
     },
