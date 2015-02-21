@@ -5,7 +5,7 @@ npm install
 
 bower install
 
-sudo gulp 
+gulp 
 
 open http://localhost:8080/
 ```
