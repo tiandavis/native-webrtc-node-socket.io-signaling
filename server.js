@@ -121,9 +121,4 @@ io.on('connection', function(socket){
   socket.on('answer', function(answer){
     socket.broadcast.emit('answer', answer);
   });
-  
-  // Relay answers
-  socket.on('gotUserMedia', function(){
-    socket.broadcast.emit('gotUserMedia');
-  });
 });

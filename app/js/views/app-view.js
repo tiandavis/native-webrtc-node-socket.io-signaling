@@ -34,7 +34,6 @@ var AppView = Backbone.View.extend({
         this.socket.on('candidate', this.onCandidate);
         this.socket.on('answer', this.onAnswer);
 		this.socket.on('group', this.onGroupJoin);
-		this.socket.on('gotUserMedia', this.onGotUserMedia);
 		
 		
 		window.sketchpad = Raphael.sketchpad("whiteboard-canvas", {
@@ -210,8 +209,7 @@ var AppView = Backbone.View.extend({
 		_this.peerConnection.setRemoteDescription(rtcAnswer);
     },
 	
-    // When a browser receives an offer, set up a callback to be run when the
-    // ephemeral token is returned from Twilio.
+    // When a browser receives an offer.
     onOffer: function(offer){
 		console.log("onOffer", this);
 		var _this = window.appView;
