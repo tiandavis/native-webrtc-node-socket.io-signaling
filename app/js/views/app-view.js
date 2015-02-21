@@ -15,7 +15,7 @@ var AppView = Backbone.View.extend({
 		this.isInitiator = false;
 		
 		this.pcConfig = {'iceServers':[
-			{'url':'stun:23.21.150.121'}, 
+			{url:'stun:23.21.150.121'}, 
 			{url: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com'}
 		]};
 		
@@ -452,8 +452,8 @@ var AppView = Backbone.View.extend({
 
     // There's not much to do in this demo if there is no media stream. So
     // let's just stop.
-    noMediaStream: function(){
-		console.log("No media stream for us.");
+    noMediaStream: function(error){
+		console.log("No media stream for us.", error);
 		// Sad trombone.
     },
 	
@@ -494,7 +494,7 @@ var AppView = Backbone.View.extend({
 	
 	screenShare: function(e) {
 		console.log("screenShare");
-		console.log("You'll need a more robust communications API. Checkout the folks at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
 	},
 	
 	toggleVideoMute: function(e) {
@@ -505,21 +505,21 @@ var AppView = Backbone.View.extend({
 		
 		$(".fa-microphone, .fa-microphone-slash").toggle();
 		
-		console.log("You'll need a more robust communications API. Checkout the folks at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
 	},
 	
 	toggleVideo: function(e) {
 		console.log("toggleVideo");
 		console.log(this);
 		
-		console.log("You'll need a more robust communications API. Checkout the folks at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
 	},
 	
 	hangupVideo: function(e) {
 		console.log("hangupVideo");
 		console.log(this);
 		
-		console.log("You'll need a more robust communications API. Checkout the folks at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
 	},
 	
 	showVideoControls: function(e) {
