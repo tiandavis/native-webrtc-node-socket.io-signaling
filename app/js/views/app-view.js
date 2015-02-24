@@ -492,7 +492,7 @@ var AppView = Backbone.View.extend({
 	
 	screenShare: function(e) {
 		console.log("screenShare");
-		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://portal.respoke.io/#/signup");
 	},
 	
 	toggleVideoMute: function(e) {
@@ -503,21 +503,21 @@ var AppView = Backbone.View.extend({
 		
 		$(".fa-microphone, .fa-microphone-slash").toggle();
 		
-		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://portal.respoke.io/#/signup");
 	},
 	
 	toggleVideo: function(e) {
 		console.log("toggleVideo");
 		console.log(this);
 		
-		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://portal.respoke.io/#/signup");
 	},
 	
 	hangupVideo: function(e) {
 		console.log("hangupVideo");
 		console.log(this);
 		
-		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://respoke.io/");
+		console.log("You'll need a more robust communications API. Get a FREE developer account at Respoke: https://portal.respoke.io/#/signup");
 	},
 	
 	showVideoControls: function(e) {
